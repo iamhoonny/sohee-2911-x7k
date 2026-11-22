@@ -112,11 +112,14 @@
     box-shadow: 0 0 6px 1px var(--c);
   }
 
-  .greeting {
-    opacity: 0; visibility: hidden;
-    transition: opacity .7s ease 1.6s, visibility 0s 1.6s;
-  }
-  .done .greeting { opacity: 1; visibility: visible; }
+  /* 촛불 끄기 전: 안내 문구 + 케이크만 화면 가운데.
+     다 끄면: 안내 문구 자리가 없어지고 케이크가 스르륵 올라가며 축하 글씨가 나타남 */
+  body:not(.done) .hero { padding-bottom: 2.5rem; }
+  body:not(.done) .hero .stage { margin-bottom: auto; }
+  .done .hint { display: none; }
+  .greeting { display: none; margin-bottom: auto; }
+  .done .greeting { display: block; animation: greet-in .8s cubic-bezier(.2,.8,.3,1) .35s both; }
+  @keyframes greet-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
   .greeting h1 {
     font-family: var(--round);
     font-weight: 400;
@@ -1107,10 +1110,16 @@ function blowOut(btn) {
   }
 }
 function celebrate() {
-  $("hint").textContent = "";
   $("status").textContent = `생일 축하해, ${CONFIG.calling}`;
-  document.body.classList.add("done");
-  if (!reduceMotion) fireworks();
+  const stage = document.querySelector(".stage");
+  const before = stage.getBoundingClientRect().top;
+  document.body.classList.add("done");                      // 문구 자리 없어지고 축하 글씨 자리가 생김
+  const after = stage.getBoundingClientRect().top;
+  if (!reduceMotion) {
+    fireworks();                                            // 케이크가 도착할 자리 기준으로 터짐
+    stage.animate([{ transform: `translateY(${before - after}px)` }, { transform: "none" }],
+      { duration: 900, easing: "cubic-bezier(.3,.8,.3,1)" });  // 원래 자리에서 새 자리로 스르륵
+  }
   // 노래: 두 번째 '빵' 소리(0.2초)가 끝나고 0.5초 뒤
   setTimeout(() => { if (!songStarted) { songStarted = true; playSong(); } }, 700);
 }
