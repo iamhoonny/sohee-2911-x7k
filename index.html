@@ -1,0 +1,1379 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>생일 축하해</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --milk: #FFF4F2;
+    --cream: #FFFFFF;
+    --berry: #E2384F;
+    --berry-soft: #F7C9CF;
+    --leaf: #4FA36B;
+    --sponge: #F7DFA4;
+    --choco: #4A2C2A;
+    --choco-soft: #7A5A57;
+    --round: "Jua", "Apple SD Gothic Neo", sans-serif;
+    --body: "Gowun Dodum", "Apple SD Gothic Neo", sans-serif;
+    --hand: "Gaegu", cursive;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { -webkit-text-size-adjust: 100%; height: 100%; overflow: hidden; }
+  body {
+    background: var(--milk);
+    color: var(--choco);
+    font-family: var(--body);
+    font-size: 1.0625rem;
+    line-height: 1.85;
+    word-break: keep-all;
+    height: 100%; overflow: hidden;    /* 브라우저 화면은 고정, 페이지 안에서만 스크롤 */
+  }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--berry); outline-offset: 4px; border-radius: 8px; }
+
+  /* ---------- 첫 화면: 케이크 ---------- */
+  .hero {
+    display: flex; flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 2.5rem 1rem 4rem;
+    position: relative;
+    text-align: center;
+  }
+  .hint {
+    font-family: var(--round);
+    font-size: clamp(1.25rem, 4.5vw, 1.6rem);
+    color: var(--choco);
+    line-height: 1.6; height: 1.6em;   /* 문구가 비어도 높이 그대로 */
+  }
+  .stage {
+    position: relative;
+    width: min(88vw, 420px);
+    margin-top: .5rem;
+  }
+  .cake { display: block; width: 100%; height: auto; filter: drop-shadow(0 14px 18px rgba(74,44,42,.16)); }
+
+  /* 촛불: 케이크 이미지 속 29 초 위에 불꽃만 얹음 */
+  .candles { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+  .candle {
+    position: absolute; top: var(--y); left: var(--x);
+    width: 11%; aspect-ratio: .85;
+    transform: translate(-50%, -100%);
+    background: none; border: 0; padding: 0;
+    cursor: pointer; pointer-events: auto;
+  }
+  .candle .flame {
+    position: absolute; left: 50%; bottom: 2px;
+    width: 62%; height: 80%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at 50% 72%, #fff 0 18%, var(--sponge) 32%, #F59E4A 78%);
+    border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+    transform-origin: 50% 90%;
+    box-shadow: 0 0 18px 6px rgba(247,223,164,.55);
+    animation: flicker 1.3s ease-in-out infinite alternate;
+    transition: transform .25s ease, opacity .25s ease;
+  }
+  .candle .smoke {
+    position: absolute; left: 50%; bottom: 14px;
+    width: .5rem; height: .5rem; margin-left: -.25rem;
+    border-radius: 50%;
+    background: rgba(122,90,87,.35);
+    opacity: 0;
+  }
+  .candle.out { cursor: default; }
+  .candle.out .flame { transform: translateX(-50%) scale(0); opacity: 0; animation: none; }
+  .candle.out .smoke { animation: smoke 1.2s ease-out forwards; }
+  @keyframes flicker {
+    0% { transform: translateX(-50%) rotate(-4deg) scaleY(1); }
+    100% { transform: translateX(-50%) rotate(4deg) scaleY(1.08); }
+  }
+  @keyframes smoke {
+    0% { opacity: .8; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-2.5rem) translateX(.6rem) scale(3); }
+  }
+
+  .done .candles { opacity: 0; transition: opacity .4s ease .2s; pointer-events: none; }
+  /* 폭죽: 케이크 주변에서 터짐 (케이크는 그대로) */
+  .fx { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+  .fx .flash {
+    position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0 18%, rgba(255,236,190,.85) 35%, rgba(255,200,160,0) 70%);
+  }
+  .fx .spark {
+    position: absolute; width: 3px; height: 13px; margin: -6.5px 0 0 -1.5px;
+    border-radius: 3px;
+    background: var(--c);
+    box-shadow: 0 0 6px 1px var(--c);
+  }
+
+  .greeting {
+    opacity: 0; visibility: hidden;
+    transition: opacity .7s ease 1.6s, visibility 0s 1.6s;
+  }
+  .done .greeting { opacity: 1; visibility: visible; }
+  .greeting h1 {
+    font-family: var(--round);
+    font-weight: 400;
+    font-size: clamp(2.6rem, 11vw, 5rem);
+    line-height: 1.1;
+    color: var(--choco);
+  }
+  .greeting h1 span { color: var(--berry); }
+  .greeting p {
+    font-family: var(--hand);
+    font-size: clamp(1.35rem, 4vw, 1.7rem);
+    color: var(--choco-soft);
+    margin-top: .4rem;
+  }
+
+  /* ---------- 페이지: 한 번에 하나만 보임 ---------- */
+  .page[hidden] { display: none !important; }
+  .page {                           /* 페이지마다 한 화면 높이, 넘치면 그 안에서 스크롤 */
+    height: 100vh; height: 100dvh;
+    overflow-y: auto; overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* 내용이 짧으면 세로 가운데, 길면 위에서부터 (잘리지 않게) */
+  .page > :first-child { margin-top: auto; }
+  .page > :last-child { margin-bottom: auto; }
+  .page:focus { outline: none; }
+  .page-enter { animation: page-in .45s cubic-bezier(.2,.8,.2,1); }
+  @keyframes page-in {
+    from { opacity: 0; transform: translateX(var(--from, 30px)); }
+    to   { opacity: 1; transform: none; }
+  }
+  .page { padding-bottom: 7rem; }   /* 아래 넘김 바 자리: 처음부터 비워둬서 촛불 끌 때 케이크가 움직이지 않게 */
+
+  /* 총 쏘는 사진: 마지막 촛불 끌 때 아래에서 올라옴 */
+  .shooter {
+    position: fixed; left: 50%; bottom: 0; z-index: 42;
+    height: min(66vh, 600px); aspect-ratio: 700 / 1216;
+    transform: translate(-50%, 105%);
+    pointer-events: none;
+  }
+  .shooter[hidden] { display: none; }
+  .shooter img { display: block; width: 100%; height: 100%; filter: drop-shadow(0 -6px 18px rgba(74,44,42,.18)); }
+  .shooter .muzzle {
+    position: absolute; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%) scale(0);
+    border-radius: 50%; opacity: 0;
+    background: radial-gradient(circle, #fff 0 16%, #FFE7A3 30%, rgba(255,170,90,.75) 48%, rgba(255,140,90,0) 70%);
+  }
+  .shooter .bang-word {
+    position: absolute; transform: translate(-50%, -50%) scale(0); opacity: 0;
+    font-family: var(--round); font-size: clamp(1.8rem, 8vw, 2.6rem); line-height: 1;
+    color: var(--berry); white-space: nowrap;
+    text-shadow: 3px 0 0 #fff, -3px 0 0 #fff, 0 3px 0 #fff, 0 -3px 0 #fff, 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
+  }
+
+  .music-btn {
+    position: fixed; z-index: 41;
+    top: max(12px, env(safe-area-inset-top)); right: 12px;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 0; cursor: pointer;
+    display: none; place-items: center;
+    background: rgba(255,255,255,.88);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 18px -10px rgba(74,44,42,.45);
+    color: var(--berry);
+  }
+  .done .music-btn { display: grid; }
+  .music-btn svg { width: 22px; height: 22px; }
+  .music-btn .off { display: none; }
+  .music-btn[aria-pressed="false"] .on { display: none; }
+  .music-btn[aria-pressed="false"] .off { display: block; }
+  .music-btn[aria-pressed="true"] svg { animation: bob 1.2s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform: translateY(-1.5px) rotate(-6deg); } to { transform: translateY(1.5px) rotate(6deg); } }
+
+  .pager {
+    position: fixed; left: 50%; bottom: max(1rem, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: none; align-items: center; gap: .35rem;
+    padding: .35rem;
+    background: rgba(255,255,255,.88);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-radius: 999px;
+    box-shadow: 0 8px 24px -12px rgba(74,44,42,.4);
+    z-index: 40;
+  }
+  .done .pager { display: flex; }
+  .pager-btn {
+    font-family: var(--round); font-size: 1rem;
+    border: 0; border-radius: 999px;
+    background: transparent; color: var(--choco);
+    padding: .6rem 1.05rem;
+    cursor: pointer;
+  }
+  .pager-btn.next { background: var(--berry); color: var(--cream); }
+  .pager-btn:disabled { opacity: .3; cursor: default; }
+  .dots { list-style: none; padding: 0 .2rem; display: flex; }
+  .dots button {
+    width: 22px; height: 30px; padding: 0; border: 0; background: none; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .dots button::after {
+    content: ""; width: 8px; height: 8px; border-radius: 4px;
+    background: var(--berry-soft);
+    transition: width .25s ease, background .25s ease;
+  }
+  .dots button[aria-current="page"]::after { width: 18px; background: var(--berry); }
+
+  /* ---------- 편지 ---------- */
+  section { padding: clamp(3.5rem, 10vw, 6rem) 1rem; }
+
+  /* 섹션마다 한 화면씩: 첫 화면처럼 따로 떨어진 공간 */
+  main > section {
+    --bg: var(--milk);
+    position: relative;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    padding-top: clamp(4.5rem, 12vw, 7rem);
+    padding-bottom: clamp(4.5rem, 12vw, 7rem);
+  }
+  main > section > * { width: 100%; }
+  #letter { --bg: #FFE3E7; }        /* 딸기우유 */
+  .album  { --bg: #FFFBF6; }        /* 생크림 */
+  .gacha  { --bg: #FFF1D2; }        /* 스펀지 */
+  .end    { --bg: var(--milk); }
+  .wrap { max-width: 40rem; margin: 0 auto; }
+  h2 {
+    font-family: var(--round);
+    font-weight: 400;
+    font-size: clamp(1.9rem, 6vw, 2.6rem);
+    line-height: 1.25;
+    margin-bottom: 1.8rem;
+  }
+  .letter-card {
+    position: relative;
+    background: var(--cream);
+    border-radius: 0 0 28px 28px;
+    padding: clamp(1.75rem, 6vw, 3rem);
+    margin-top: 16px;
+  }
+  .letter-card::before {           /* 생크림을 짠 듯한 물결 윗선 */
+    content: "";
+    position: absolute; left: 0; right: 0; top: -15px; height: 16px;
+    background: radial-gradient(circle at 15px 16px, var(--cream) 14.5px, transparent 15.5px) 0 0 / 30px 16px repeat-x;
+  }
+  .letter-card p { max-width: 32em; }
+  .letter-card p + p { margin-top: 1.2em; }
+  /* 편지 페이지 작은 사진: 글을 피해 매번 다른 자리에 나타났다 사라짐 */
+  #letter .wrap { position: relative; }
+  .letter-photos { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 2; pointer-events: none; }
+  .letter-photos .lp {
+    position: absolute; margin: 0;
+    width: clamp(84px, 22vw, 170px); aspect-ratio: .8;
+    background: #fff; padding: 6px 6px 18px;
+    box-shadow: 0 10px 22px -12px rgba(74,44,42,.5);
+    opacity: 0;
+    transform: rotate(var(--r, 0deg)) scale(.9) translateY(8px);
+    transition: opacity .6s ease, transform .7s cubic-bezier(.3,1.3,.5,1);
+  }
+  .letter-photos .lp.show { opacity: 1; transform: rotate(var(--r, 0deg)) scale(1); }
+  .letter-photos img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  @media (min-width: 1000px) { .letter-photos .lp { padding: 9px 9px 28px; } }
+
+  .letter-card .sign {
+    margin-top: 2rem;
+    font-family: var(--hand);
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.2;
+    color: var(--berry);
+  }
+
+  /* ---------- 타임라인 ---------- */
+  .album .wrap { max-width: 56rem; }
+  .timeline { list-style: none; padding: 0; position: relative; }
+  .timeline::before {               /* 생크림을 짜 놓은 듯한 점선 줄기 */
+    content: "";
+    position: absolute; top: .8rem; bottom: 0; left: 10px;
+    width: 4px; border-radius: 2px;
+    background: repeating-linear-gradient(var(--berry-soft) 0 12px, transparent 12px 20px);
+  }
+  .tl-item { position: relative; padding-left: 2.6rem; }
+  .tl-item + .tl-item { margin-top: 3rem; }
+  .tl-item::before {                /* 연도 옆 딸기 점 */
+    content: "";
+    position: absolute; left: 2px; top: .55rem;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--berry);
+    box-shadow: 0 0 0 5px var(--milk);
+  }
+  .tl-year {
+    display: block;
+    font-family: var(--round);
+    font-size: clamp(2rem, 7vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--berry);
+    margin-bottom: 1rem;
+  }
+  .polaroid {
+    width: min(100%, 320px);
+    background: var(--cream);
+    padding: 10px 10px 14px;
+    box-shadow: 0 2px 0 rgba(74,44,42,.06), 0 10px 24px -12px rgba(74,44,42,.35);
+    transform: rotate(var(--tilt, 0deg));
+  }
+  .polaroid:not(:has(figcaption)) { padding-bottom: 38px; }   /* 캡션이 없으면 폴라로이드 아래 여백 */
+  .tl-item:nth-child(odd) .polaroid { --tilt: -1.8deg; }
+  .tl-item:nth-child(even) .polaroid { --tilt: 1.6deg; }
+
+  .tl-next::before { background: var(--milk); box-shadow: 0 0 0 3px var(--berry) inset, 0 0 0 5px var(--milk); }
+  .tl-next .tl-year { color: var(--choco-soft); }
+  .tl-next .blank {
+    width: min(100%, 320px);
+    aspect-ratio: 4 / 5;
+    display: grid; place-items: center;
+    padding: 1.5rem;
+    border: 3px dashed var(--berry-soft);
+    border-radius: 6px;
+    font-family: var(--hand);
+    font-size: 1.7rem; line-height: 1.3;
+    color: var(--berry);
+    text-align: center;
+  }
+
+  @media (min-width: 760px) {      /* 넓은 화면: 가운데 줄기를 두고 좌우로 번갈아 */
+    .timeline::before { left: 50%; margin-left: -2px; }
+    .tl-item { width: 50%; margin-left: 50%; padding-left: 3rem; }
+    .tl-item::before { left: -10px; }
+    .tl-item:nth-child(odd) {
+      margin-left: 0; padding-left: 0; padding-right: 3rem;
+      display: flex; flex-direction: column; align-items: flex-end; text-align: right;
+    }
+    .tl-item:nth-child(odd)::before { left: auto; right: -10px; }
+    .tl-item + .tl-item { margin-top: -12rem; }
+  }
+  .photo {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--milk);
+  }
+  .photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .photo.empty {
+    display: grid; place-items: center;
+    background:
+      radial-gradient(circle at 25% 25%, var(--berry-soft) 0 5px, transparent 6px) 0 0 / 34px 34px,
+      radial-gradient(circle at 75% 75%, var(--berry-soft) 0 5px, transparent 6px) 0 0 / 34px 34px,
+      var(--milk);
+  }
+  .photo.empty span {
+    font-family: var(--hand); font-size: 1.2rem;
+    background: var(--cream);
+    padding: .1rem .7rem; border-radius: 999px;
+    color: var(--choco-soft);
+  }
+  .polaroid figcaption time { display: block; color: var(--choco-soft); }
+  .polaroid figcaption {
+    font-family: var(--hand);
+    font-size: 1.35rem;
+    line-height: 1.25;
+    margin-top: .6rem;
+    padding: 0 .2rem;
+  }
+
+  /* ---------- 선물 뽑기 ---------- */
+  .gacha { text-align: center; }
+  .gacha h2 { margin-bottom: .6rem; }
+  .gacha-hint { font-family: var(--round); color: var(--choco-soft); min-height: 1.85em; }
+  .machine {
+    position: relative;
+    width: min(78vw, 300px);
+    margin: 1.5rem auto 0;
+  }
+  .machine > svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .ball { transform-box: fill-box; transform-origin: center; }
+  .crank {
+    position: absolute;
+    left: 34.6%; top: 80.6%;
+    width: 22%; aspect-ratio: 1;
+    transform: translate(-50%, -50%) rotate(var(--turn, 0deg));
+    transition: transform .9s cubic-bezier(.4,0,.2,1);
+    background: none; border: 0; padding: 0;
+    cursor: pointer;
+  }
+  .crank svg { display: block; width: 100%; height: 100%; }
+  .crank:disabled { cursor: default; opacity: .55; }
+  .capsule-out {
+    position: absolute;
+    left: 68.5%; top: 82%;
+    width: 17%; aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: none; border: 0; padding: 0;
+    cursor: pointer;
+    animation: drop .5s cubic-bezier(.3,1.5,.5,1);
+  }
+  .capsule-out[hidden] { display: none; }
+  .capsule-out svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  @keyframes drop {
+    0% { transform: translate(-50%, -160%) scale(.6); opacity: 0; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  }
+  /* 캡슐 확대 → 뚜껑 열림 → 쪽지 펼침 */
+  .reveal {
+    position: fixed; inset: 0; z-index: 50;
+    display: grid; place-items: center;
+    background: rgba(255,244,242,.94);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    opacity: 0; transition: opacity .3s ease;
+    padding: 1rem;
+  }
+  .reveal[hidden] { display: none; }
+  .reveal.on { opacity: 1; }
+  .reveal-stage {
+    position: relative;
+    width: min(92vw, 320px); height: min(88svh, 460px);
+    perspective: 1000px;
+  }
+  .big-capsule {
+    position: absolute; left: 50%; top: 56%;
+    width: 180px; height: 180px;
+    transform: translate(-50%, -50%) scale(.25);
+    transition: transform .5s cubic-bezier(.3,1.5,.5,1), opacity .4s ease;
+    z-index: 2;
+  }
+  .on .big-capsule { transform: translate(-50%, -50%) scale(1); }
+  .shaking .big-capsule { animation: capsule-shake .5s ease-in-out; }
+  @keyframes capsule-shake {
+    0%,100% { rotate: 0deg; }
+    20% { rotate: -12deg; } 40% { rotate: 10deg; } 60% { rotate: -7deg; } 80% { rotate: 4deg; }
+  }
+  .cap-top, .cap-bottom { position: absolute; left: 0; width: 100%; height: 50%; box-sizing: border-box; }
+  .cap-top {
+    top: 0;
+    background: var(--c);
+    border-radius: 90px 90px 0 0;
+    border: 3px solid rgba(74,44,42,.16); border-bottom: 0;
+    transform-origin: 12% 100%;
+    transition: transform .6s cubic-bezier(.3,1.3,.5,1), opacity .35s ease .35s;
+    z-index: 3;
+  }
+  .cap-top::after {                 /* 반짝 하이라이트 */
+    content: ""; position: absolute; left: 22%; top: 18%;
+    width: 26%; height: 16%;
+    border-top: 7px solid rgba(255,255,255,.75);
+    border-radius: 50% 50% 0 0;
+    transform: rotate(-28deg);
+  }
+  .cap-bottom {
+    bottom: 0;
+    background: var(--cream);
+    border-radius: 0 0 90px 90px;
+    border: 3px solid rgba(74,44,42,.16); border-top: 0;
+    box-shadow: inset 0 -10px 0 rgba(74,44,42,.05), 0 14px 30px -14px rgba(74,44,42,.35);
+    z-index: 2;
+  }
+  .cap-bottom::before {             /* 캡슐 이음새 */
+    content: ""; position: absolute; left: -3px; right: -3px; top: -1.5px; height: 3px;
+    background: rgba(74,44,42,.16);
+  }
+  .s2 .cap-top { transform: translate(-40px, -170px) rotate(-55deg); opacity: 0; }
+  .s3 .big-capsule { transform: translate(-50%, -50%) translateY(140px) scale(.85); opacity: 0; transition-delay: .25s; }
+
+  .note-shadow {                    /* 종이 아래 깔리는 부드러운 그림자 하나: 경계선 없음 */
+    position: absolute; left: 50%; top: 56%;
+    width: 230px; height: 90px;
+    border-radius: 50%;
+    background: rgba(74,44,42,.28);
+    filter: blur(22px);
+    transform: translate(-50%, -50%) translateY(26px) scaleY(.6);
+    opacity: 0;
+    transition: transform .95s cubic-bezier(.45,.05,.35,1), opacity .5s ease;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .s4 .note-shadow { opacity: 1; transform: translate(-50%, -50%) translateY(30px) scaleY(3.3); }
+  .note {
+    position: absolute; left: 50%; top: 56%;
+    width: 260px; height: 112px;
+    transform: translate(-50%, -50%) scale(.5);
+    transform-style: preserve-3d;
+    transition: transform .6s cubic-bezier(.3,1.25,.5,1);
+    z-index: 1;
+    opacity: 0;
+  }
+  .s2 .note { opacity: 1; }
+  .s3 .note { transform: translate(-50%, -50%) translateY(-110px) scale(.72) rotate(-4deg); z-index: 4; }
+  .s4 .note { transform: translate(-50%, -50%) scale(1); z-index: 4; }
+  .panel {
+    position: absolute; left: 0; right: 0; height: 112px;
+    transform-style: preserve-3d;
+    transition: transform .7s cubic-bezier(.45,.05,.35,1.15);
+  }
+  .p-mid { top: 0; }
+  .p-top { bottom: 100%; transform-origin: 50% 100%; transform: translateZ(2px) rotateX(-180deg); }
+  .p-bot { top: 100%; transform-origin: 50% 0; transform: translateZ(1px) rotateX(180deg); }
+  /* 접힌/펴진 상태의 변형 구성을 똑같이 맞춰야 실제로 '회전'하며 펴짐 */
+  .s4 .p-top { transform: translateZ(0px) rotateX(0deg); }
+  .s4 .p-bot { transform: translateZ(0px) rotateX(0deg); transition-delay: .35s; }
+  .face {
+    position: absolute; inset: 0;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    background: #FFFDF9;
+    padding: 1rem 1.25rem;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .face.back {
+    transform: rotateX(180deg);
+    background:
+      radial-gradient(circle at 25% 25%, var(--berry-soft) 0 3px, transparent 4px) 0 0 / 22px 22px,
+      #FBF1EE;
+  }
+  .p-top .face.front { border-radius: 10px 10px 0 0; justify-content: flex-end; }
+  .p-bot .face.front { border-radius: 0 0 10px 10px; }
+  .p-mid .face { border-top: 1px dashed rgba(74,44,42,.14); border-bottom: 1px dashed rgba(74,44,42,.14); }
+  .note-kicker { font-family: var(--hand); font-size: 1.45rem; color: var(--choco-soft); line-height: 1.2; }
+  .note-title { font-family: var(--round); font-weight: 400; font-size: 1.8rem; line-height: 1.25; color: var(--berry); }
+  .note-text { font-size: 1rem; line-height: 1.6; }
+  .note-dismiss {
+    position: absolute; left: 0; right: 0; bottom: max(1.5rem, env(safe-area-inset-bottom));
+    text-align: center;
+    font-family: var(--hand); font-size: 1.3rem;
+    color: var(--choco-soft);
+    opacity: 0; transition: opacity .5s ease 1.2s;
+    pointer-events: none;
+  }
+  .s4 .note-dismiss { opacity: 1; }
+  .reveal.s4 { cursor: pointer; }
+  .reveal.s4 .note { cursor: default; }
+  .reveal:focus { outline: none; }
+  .note-content { opacity: 0; transition: opacity .4s ease .55s; }
+  .s4 .note-content { opacity: 1; }
+
+  /* ---------- 마무리 ---------- */
+  .end { text-align: center; align-items: center; }
+  .end > * { width: auto; }          /* 버튼이 늘어나지 않게 */
+  .end .big {
+    font-family: var(--round);
+    font-size: clamp(2.2rem, 9vw, 4.2rem);
+    line-height: 1.15;
+  }
+  .end .from { font-family: var(--hand); font-size: 1.25rem; color: var(--choco-soft); margin-top: .8rem; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      animation-delay: 0s !important;
+      transition-duration: 0s !important; transition-delay: 0s !important;
+    }
+    .candle .flame { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="fx" id="fx" aria-hidden="true"></div>
+<div class="shooter" id="shooter" aria-hidden="true" hidden>
+  <img src="shooter.webp" alt="" width="700" height="1216">
+  <span class="muzzle" style="left:37%;top:43.5%"></span>
+  <span class="muzzle" style="left:78%;top:38%"></span>
+  <span class="bang-word" style="left:22%;top:33%">BANG!!</span>
+  <span class="bang-word" style="left:86%;top:27%">BAAAANG!!</span>
+</div>
+
+<header class="hero" id="top">
+  <p class="hint" id="hint">촛불을 하나씩 눌러서 꺼줘</p>
+
+  <div class="stage">
+    <div class="candles" id="candles"></div>
+
+    <!-- 딸기 생크림 케이크 (cake.webp) -->
+    <img class="cake" id="cake" src="cake.webp" alt="소희 생일 케이크" width="900" height="896">
+
+  </div>
+
+  <div class="greeting">
+    <h1 id="headline"></h1>
+    <p id="sub"></p>
+  </div>
+
+  <p class="sr-only" aria-live="polite" id="status"></p>
+</header>
+
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-labelledby="note-title" tabindex="-1" hidden>
+  <p class="note-dismiss">빈 곳을 누르면 닫혀</p>
+  <div class="reveal-stage">
+    <div class="big-capsule" aria-hidden="true"><div class="cap-top"></div><div class="cap-bottom"></div></div>
+    <div class="note-shadow"></div>
+    <div class="note">
+      <div class="panel p-top">
+        <div class="face front"><p class="note-kicker note-content">생일 선물이 나왔어</p></div>
+        <div class="face back"></div>
+      </div>
+      <div class="panel p-mid">
+        <div class="face front"><h3 class="note-title note-content" id="note-title"></h3></div>
+      </div>
+      <div class="panel p-bot">
+        <div class="face front"><div class="note-content"><p class="note-text" id="note-text"></p></div></div>
+        <div class="face back"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section id="letter">
+    <div class="wrap">
+      <div class="letter-photos" aria-hidden="true">
+        <figure class="lp"><img alt=""></figure>
+        <figure class="lp"><img alt=""></figure>
+      </div>
+      <h2 id="letter-title"></h2>
+      <div class="letter-card">
+        <div id="letter-body"></div>
+        <p class="sign" id="sign"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="album">
+    <div class="wrap">
+      <h2 id="tl-title"></h2>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+  </section>
+
+  <section class="gacha">
+    <div class="wrap">
+      <h2>선물 뽑기</h2>
+      <p class="gacha-hint" id="gacha-hint" aria-live="polite"></p>
+      <div class="machine" id="machine">
+        <svg viewBox="0 0 260 360" aria-hidden="true">
+          <rect x="112" y="10" width="36" height="16" rx="6" fill="#B32238"/>
+          <rect x="62" y="196" width="136" height="22" rx="8" fill="#B32238"/>
+          <circle cx="130" cy="122" r="102" fill="#FFFFFF" fill-opacity=".6" stroke="#F7C9CF" stroke-width="5"/>
+          <g class="balls" id="balls"></g>
+          <path d="M66 70 A86 86 0 0 1 112 38" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+          <rect x="38" y="210" width="184" height="142" rx="26" fill="#E2384F"/>
+          <rect x="66" y="226" width="128" height="34" rx="17" fill="#FFF4F2"/>
+          <text x="130" y="250" text-anchor="middle" font-family="Jua, sans-serif" font-size="20" fill="#E2384F">생일 뽑기</text>
+          <circle cx="90" cy="290" r="31" fill="#B32238"/>
+          <rect x="150" y="276" width="56" height="44" rx="14" fill="#8E1B2C"/>
+          <rect x="54" y="340" width="152" height="14" rx="7" fill="#F7C9CF"/>
+        </svg>
+        <button class="crank" id="crank" type="button" aria-label="손잡이 돌려서 선물 뽑기">
+          <svg viewBox="0 0 60 60" aria-hidden="true">
+            <circle cx="30" cy="30" r="27" fill="#FFF4F2"/>
+            <rect x="8" y="24" width="44" height="12" rx="6" fill="#F7DFA4"/>
+            <circle cx="30" cy="30" r="6" fill="#E2384F"/>
+          </svg>
+        </button>
+        <button class="capsule-out" id="capsule-out" type="button" aria-label="캡슐 열기" hidden></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="end">
+    <p class="big" id="end-line"></p>
+    <p class="from" id="from"></p>
+  </section>
+</main>
+
+<button class="music-btn" id="music-btn" type="button" aria-pressed="false" aria-label="생일 축하 노래 켜기">
+  <svg class="on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 17.5a3 3 0 1 1-2-2.83V5.2a1 1 0 0 1 .76-.97l10-2.5A1 1 0 0 1 19 2.7v12.8a3 3 0 1 1-2-2.83V7.28l-8 2V17.5Z"/></svg>
+  <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 17.5a3 3 0 1 1-2-2.83V5.2l12-3v13.3a3 3 0 1 1-2-2.83" fill="none"/><path d="M3 3l18 18"/></svg>
+</button>
+
+<nav class="pager" id="pager" aria-label="페이지 넘기기">
+  <button class="pager-btn" id="prev" type="button">이전</button>
+  <ol class="dots" id="dots"></ol>
+  <button class="pager-btn next" id="next" type="button">다음</button>
+</nav>
+
+<script>
+/* =========================================================
+   여기만 고치면 돼요.
+   - age: 바뀌는 나이. 케이크 이미지(cake.webp)에 29가 그려져 있어요.
+   - timeline: 연도별 사진. photos 폴더에 2016.jpg처럼 넣으면 자동으로 보여요.
+     파일 이름이 다르면 file을 고쳐요. date는 사진 아래 날짜, 한 줄 적고 싶으면 caption을 추가해요.
+     focus는 사진이 잘릴 때 남길 위치예요. "가로% 세로%" (50% 50%가 가운데)
+     사진이 없으면 딸기 무늬 빈 칸이 보여요.
+   ========================================================= */
+const CONFIG = {
+  her: "소희",
+  calling: "소희야",
+  me: "성훈",
+  age: 29,
+  birthday: "11월 21일",
+
+  letterTitle: "오늘은 아니지만 생일 축하해!",
+  letter: [
+    "안녕 29살이 되었구나 소희얌",
+    "생일 너무너무 축하해 🎉🎉",
+    "우리 만난 이후 너의 11번째 생일이야",
+    "생일을 매년 다 챙겨주지는 못 한 것 같긴한데 벌써 이만큼 챙겨줬다는게 신기하다",
+    "매년 이렇게 챙길 수 있는 사람이 있다는게 너무 행복해 😊",
+    "요즘 일이 많고 힘들겠지만 오늘만큼은 잊고 즐겁게 보내보쟈",
+    "행복한 생일이 되기를 바랄게 💖",
+  ],
+
+  timeline: [
+    { year: 2016, file: "photos/2016.jpg", focus: "50% 35%", date: "2016. 10. 29" },
+    { year: 2017, file: "photos/2017.jpg", focus: "50% 40%", date: "2017. 08. 25" },
+    { year: 2018, file: "photos/2018.jpg", focus: "36% 50%", date: "2018. 11. 09" },
+    { year: 2019, file: "photos/2019.jpg", focus: "60% 50%", date: "2019. 11. 05" },
+    { year: 2020, file: "photos/2020.jpg", focus: "50% 25%", date: "2020. 02. 19" },
+    { year: 2021, file: "photos/2021.jpg", focus: "45% 60%", date: "2021. 10. 26" },
+    { year: 2022, file: "photos/2022.jpg", focus: "50% 70%", date: "2022. 02. 18" },
+    { year: 2023, file: "photos/2023.jpg", focus: "47% 50%", date: "2023. 04. 14" },
+    { year: 2024, file: "photos/2024.jpg", focus: "50% 45%", date: "2024. 12. 23" },
+    { year: 2025, file: "photos/2025.jpg", focus: "63% 50%", date: "2025. 11. 22" },
+    { year: 2026, file: "photos/2026.jpg", focus: "50% 55%", date: "2026. 06. 20" }
+  ],
+
+  gifts: [
+    { title: "꽝!", text: "아쉽다~ 한 번 더 돌려봐" },
+    { title: "또 꽝!", text: "포기하지 마. 느낌이 와" },
+    { title: "피부관리템 당첨!", text: "올해 선물이야 축하해 🎁" },
+    { title: "꽝!", text: "선물은 하나뿐이었지롱" },
+    { title: "꽝!", text: "아쉽지만 다음 기회에" },
+    { title: "꽝!", text: "마지막도 없지롱" }
+  ],
+
+  // 촛불을 다 끄면 나오는 음악. 비워두면 오르골로 생일 축하 멜로디를 연주해요.
+  // 원하는 음악 파일이 있으면 폴더에 넣고 이름을 적어요. 예: "music.mp3"
+  music: "",
+
+  // 편지 페이지 옆에서 하나씩 나타났다 사라지는 작은 사진들 (순서대로 반복)
+  letterPhotos: ["with/01.jpg", "with/02.jpg", "with/03.jpg", "with/04.jpg", "with/05.jpg",
+                 "with/06.jpg", "with/07.jpg", "with/08.jpg", "with/09.jpg"],
+
+  endLine: "태어나줘서 고마워",
+};
+
+/* ---------- 아래는 건드리지 않아도 돼요 ---------- */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hasBatchim = (w) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 !== 0; };
+const iga = (w) => w + (hasBatchim(w) ? "이가" : "가");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+document.title = `생일 축하해, ${CONFIG.calling}`;
+$("headline").innerHTML = `생일 축하해<br><span>${esc(CONFIG.calling)}</span>`;
+$("sub").textContent = `${CONFIG.birthday}, ${CONFIG.age}번째 생일`;
+
+$("letter-title").textContent = CONFIG.letterTitle;
+$("letter-body").innerHTML = CONFIG.letter.map(p => `<p>${esc(p)}</p>`).join("");
+$("sign").textContent = iga(CONFIG.me);
+$("end-line").textContent = CONFIG.endLine;
+$("from").textContent = `${CONFIG.birthday}, ${iga(CONFIG.me)}`;
+
+/* 타임라인 */
+const emptyPhoto = '<div class="photo empty"><span>사진을 넣어줘</span></div>';
+const tl = CONFIG.timeline;
+$("tl-title").textContent = `우리가 함께한 ${Math.max(1, tl[tl.length - 1].year - tl[0].year)}년`;
+$("timeline").innerHTML = tl.map(t => `
+  <li class="tl-item">
+    <span class="tl-year">${esc(t.year)}</span>
+    <figure class="polaroid">
+      ${t.file
+        ? `<div class="photo"><img src="${esc(t.file)}" alt="${esc(t.caption || `${t.year}년의 우리`)}" loading="lazy"${t.focus ? ` style="object-position:${esc(t.focus)}"` : ""}></div>`
+        : emptyPhoto}
+      ${t.date || t.caption ? `<figcaption>${t.date ? `<time>${esc(t.date)}</time>` : ""}${t.caption ? esc(t.caption) : ""}</figcaption>` : ""}
+    </figure>
+  </li>`).join("") + (CONFIG.next ? `
+  <li class="tl-item tl-next">
+    <span class="tl-year">${esc(CONFIG.next.year)}</span>
+    <div class="blank">${esc(CONFIG.next.text)}</div>
+  </li>` : "");
+$("timeline").querySelectorAll("img").forEach(img => {
+  img.addEventListener("error", () => { img.parentElement.outerHTML = emptyPhoto; }, { once: true });
+});
+
+/* 선물 뽑기 */
+const CAPSULE_COLORS = ["#E2384F", "#F7DFA4", "#4FA36B", "#F4A7B2", "#9DC3EA", "#C9B4EE"];
+// 새로고침하면 캡슐이 다시 가득 차요. 예전 버전이 남긴 기록은 지워요.
+try { localStorage.removeItem("birthday-gacha-pulled"); } catch {}
+let pulled = [];
+let busy = false;
+let turn = 0;
+let current = null;
+
+const capsuleSvg = (color) => `
+  <svg viewBox="-20 -20 40 40" aria-hidden="true">
+    <path d="M-17 0 A17 17 0 0 0 17 0 Z" fill="#fff"/>
+    <path d="M-17 0 A17 17 0 0 1 17 0 Z" fill="${color}"/>
+    <path d="M-9 -9 A10 10 0 0 1 -2 -12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+    ${CAPSULE_LINE}
+  </svg>`;
+// 캡슐 테두리 + 이음새: 흰 반쪽과 색 반쪽에 똑같이
+const CAPSULE_LINE = `<circle r="17" fill="none" stroke="rgba(74,44,42,.2)" stroke-width="1.5"/><path d="M-17 0 H17" stroke="rgba(74,44,42,.2)" stroke-width="1.5"/>`;
+
+// 선물 순서를 섞어서 캡슐에 하나씩 담아둠
+const order = CONFIG.gifts.map((_, i) => i);          // 목록 순서대로 뽑힘
+const colorOf = {};                                   // 선물 → 그 선물이 담겼던 캡슐 색
+const MAX_BALLS = 14;
+// 돔 아래쪽부터 차곡차곡 쌓았을 때의 자리 n개
+function layout(n) {
+  const spots = [];
+  for (let row = 0; spots.length < n && row < 5; row++) {
+    const y = 196 - 26 - row * 40;
+    const half = Math.sqrt(Math.max(0, 94 * 94 - (y - 122) ** 2)) - 24;
+    for (let x = 130 - half + (row % 2) * 22; x <= 130 + half && spots.length < n; x += 45) {
+      spots.push([x, y]);
+    }
+  }
+  return spots;
+}
+const placeBall = (o, x, y) => {
+  o.dataset.x = x; o.dataset.y = y;
+  o.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+};
+function renderBalls() {
+  const gifts = order.filter(i => !pulled.includes(i)).slice(0, MAX_BALLS);
+  const spots = layout(gifts.length);
+  $("balls").innerHTML = spots.map(([x, y], k) => {
+    const g = gifts[k];
+    const c = CAPSULE_COLORS[k % CAPSULE_COLORS.length];
+    const tilt = (k * 37) % 60 - 30;
+    return `<g transform="translate(${x.toFixed(1)} ${y})" data-x="${x.toFixed(1)}" data-y="${y}" data-color="${c}">
+      <g class="mover"><g transform="rotate(${tilt}) scale(1.3)">
+      <g class="ball"><path d="M-17 0 A17 17 0 0 0 17 0 Z" fill="#fff"/>
+      <path d="M-17 0 A17 17 0 0 1 17 0 Z" fill="${c}"/>${CAPSULE_LINE}</g></g></g></g>`;
+  }).join("");
+}
+
+// 빠진 자리로 위 캡슐들이 굴러 떨어짐
+function settle() {
+  const balls = [...$("balls").children].filter(o => !o.dataset.leaving);
+  const spots = layout(balls.length);
+  const free = [...balls];
+  const moves = [];
+  for (const [sx, sy] of spots) {            // 아래 자리부터, 위에 있던 가까운 캡슐이 내려와 채움
+    let best = null, bestD = Infinity;
+    for (const o of free) {
+      const ox = Number(o.dataset.x), oy = Number(o.dataset.y);
+      const d = Math.hypot(ox - sx, oy - sy) + (oy > sy + 1 ? 200 : 0);   // 아래에서 위로 올라가는 건 최대한 피함
+      if (d < bestD) { bestD = d; best = o; }
+    }
+    free.splice(free.indexOf(best), 1);
+    moves.push([best, Number(best.dataset.x), Number(best.dataset.y), sx, sy]);
+  }
+  for (const [o, x0, y0, x1, y1] of moves) {
+    const dist = Math.hypot(x1 - x0, y1 - y0);
+    if (dist < .5) continue;
+    placeBall(o, x1, y1);                       // 위치는 바로 확정 (애니메이션이 멈춰도 빈틈 없음)
+    if (reduceMotion) continue;
+    const dx = x0 - x1, dy = y0 - y1;
+    const bounce = Math.min(4, dist * .12);
+    o.querySelector(".mover").animate([
+      { transform: `translate(${dx}px, ${dy}px)`, easing: "cubic-bezier(.55,0,1,.45)" },   // 중력처럼 가속하며 떨어짐
+      { transform: "translate(0px, 0px)", offset: .78, easing: "ease-out" },
+      { transform: `translate(0px, ${-bounce}px)`, offset: .89, easing: "ease-in" },           // 닿고 살짝 통
+      { transform: "translate(0px, 0px)" }
+    ], { duration: 360 + Math.min(dist, 90) * 3, delay: Math.random() * 80, fill: "backwards" });
+  }
+}
+
+function renderGacha() {
+  const left = CONFIG.gifts.length - pulled.length;
+  $("crank").disabled = left === 0;
+  if (!current) {
+    $("gacha-hint").textContent = left === 0
+      ? "다 뽑았어! 캡슐이 텅 비었어"
+      : `손잡이를 돌려봐. 캡슐 ${left}개 남았어`;
+  }
+}
+
+$("crank").addEventListener("click", () => {
+  if (busy || current !== null) return;
+  const remaining = CONFIG.gifts.map((_, i) => i).filter(i => !pulled.includes(i));
+  if (!remaining.length) return;
+  busy = true;
+  turn += 360;
+  $("crank").style.setProperty("--turn", `${turn}deg`);
+  const live = () => [...$("balls").children].filter(o => !o.dataset.leaving);
+  if (!live().length) renderBalls();
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const balls = live();
+
+  // 1) 휘젓기: 다 같이 한 방향으로 굴러가듯 밀렸다가 가라앉음 (각자 박자와 세기는 조금씩 다르게)
+  const dir = Math.random() < .5 ? -1 : 1;
+  if (!reduceMotion) balls.forEach(outer => {
+    const b = outer.querySelector(".ball");
+    const lift = (170 - Number(outer.dataset.y)) / 40;          // 위쪽 캡슐일수록 조금 더 움직임
+    const dx = dir * rnd(2, 4.5) * (1 + lift * .25);
+    const dy = -rnd(.5, 2.5) - lift * .8;
+    const rot = Number(b.dataset.rot || 0);
+    const roll = dir * rnd(25, 60);                             // 밀린 거리만큼 굴러감
+    b.dataset.rot = rot + roll;
+    b.animate([
+      { transform: `translate(0px, 0px) rotate(${rot}deg)` },
+      { transform: `translate(${dx}px, ${dy}px) rotate(${rot + roll * .7}deg)`, offset: .5 },
+      { transform: `translate(0px, 0px) rotate(${rot + roll}deg)` }
+    ], { duration: rnd(780, 950), delay: rnd(0, 120), easing: "cubic-bezier(.45,0,.3,1)", fill: "forwards" });
+  });
+
+  // 2) 맨 아래 가운데 캡슐이 빠져나감
+  const chosen = balls.reduce((a, b) => {
+    const score = (o) => Number(o.dataset.y) * 10 - Math.abs(Number(o.dataset.x) - 130);
+    return score(b) > score(a) ? b : a;
+  });
+  const gift = order.find(i => !pulled.includes(i));       // 다음 순서의 선물
+  const color = chosen.dataset.color;
+  chosen.dataset.leaving = "1";                                // 바로 후보에서 제외
+  setTimeout(() => {
+    if (reduceMotion) { chosen.remove(); return settle(); }
+    const b = chosen.querySelector(".ball");
+    const rot = Number(b.dataset.rot || 0);
+    b.getAnimations().forEach(a => a.cancel());
+    b.animate([
+      { transform: `translate(0px, 0px) rotate(${rot}deg)`, opacity: 1 },
+      { transform: `translate(0px, 26px) rotate(${rot + dir * 30}deg) scale(.7)`, opacity: 0 }
+    ], { duration: 320, easing: "cubic-bezier(.5,0,.75,0)", fill: "forwards" });
+    setTimeout(() => { chosen.remove(); settle(); }, 340);
+  }, reduceMotion ? 0 : 560);
+
+  $("gacha-hint").textContent = "드르륵…";
+  setTimeout(() => {
+    current = gift;
+    colorOf[gift] = color;
+    const out = $("capsule-out");
+    out.innerHTML = capsuleSvg(color);
+    out.hidden = false;
+    $("gacha-hint").textContent = "캡슐이 나왔어! 눌러서 열어봐";
+    out.focus();
+    busy = false;
+  }, reduceMotion ? 50 : 950);
+});
+
+$("capsule-out").addEventListener("click", () => {
+  if (current === null || busy) return;
+  busy = true;
+  const idx = current;
+  if (!pulled.includes(idx)) pulled.push(idx);
+  setTimeout(() => {
+    $("capsule-out").hidden = true;
+    current = null;
+    busy = false;
+    renderGacha();
+    openNote(idx, true);
+  }, 0);
+});
+
+/* 확대해서 열기: s1 캡슐 등장 → 흔들 → s2 뚜껑 열림 → s3 쪽지 솟음 → s4 펼침 */
+let revealTimers = [];
+let lastFocus = null;
+function openNote(i, animate) {
+  const g = CONFIG.gifts[i];
+  const r = $("reveal");
+  revealTimers.forEach(clearTimeout); revealTimers = [];
+  lastFocus = document.activeElement;
+  r.style.setProperty("--c", colorOf[i] || CAPSULE_COLORS[0]);
+  $("note-title").textContent = g.title;
+  $("note-text").textContent = g.text || "";
+  r.className = "reveal";
+  r.hidden = false;
+  document.body.style.overflow = "hidden";
+  const step = (ms, fn) => revealTimers.push(setTimeout(fn, ms));
+  const finish = () => { r.classList.add("on", "s2", "s3", "s4"); $("reveal").focus(); };
+  if (!animate || reduceMotion) { requestAnimationFrame(finish); return; }
+  requestAnimationFrame(() => r.classList.add("on"));
+  step(550,  () => r.classList.add("shaking"));
+  step(1100, () => r.classList.add("s2"));
+  step(1550, () => r.classList.add("s3"));
+  step(2250, finish);
+}
+function closeNote() {
+  const r = $("reveal");
+  if (r.hidden) return;
+  revealTimers.forEach(clearTimeout);
+  r.classList.remove("on");
+  document.body.style.overflow = "";
+  setTimeout(() => { r.hidden = true; r.className = "reveal"; }, 300);
+  ($("crank").disabled ? lastFocus : $("crank"))?.focus({ preventScroll: true });
+}
+// 쪽지 바깥(뒤 공간)을 누르면 닫힘
+$("reveal").addEventListener("click", (e) => { if ($("reveal").classList.contains("s4") && !e.target.closest(".note")) closeNote(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("reveal").classList.contains("s4")) closeNote(); });
+
+renderBalls();
+renderGacha();
+
+/* 촛불 */
+// cake.webp 속 숫자 초 '2'와 '9'의 심지 위치 (이미지 기준 %: x 가로, y 초 윗면 높이)
+const WICKS = [{ digit: "2", x: 43.6, y: 31.2 }, { digit: "9", x: 55.6, y: 31.3 }];
+function buildCandles() {
+  $("candles").innerHTML = WICKS.map(w => `
+    <button class="candle" type="button" style="--x:${w.x}%;--y:${w.y}%" aria-label="숫자 ${w.digit} 촛불 끄기">
+      <span class="flame"></span><span class="smoke"></span>
+    </button>`).join("");
+  $("candles").querySelectorAll(".candle").forEach(btn => btn.addEventListener("click", () => blowOut(btn)));
+}
+/* 생일 축하 노래: 오르골 소리로 직접 연주 (멜로디는 퍼블릭 도메인) */
+const BEAT = .46;                                           // 한 박자 (초)
+const N = { C3: 130.81, D3: 146.83, G2: 98.0, B3: 246.94, D4: 293.66, E4: 329.63, Fs4: 369.99,
+            G4: 392.0, A4: 440.0, B4: 493.88, C5: 523.25, D5: 587.33 };
+const MELODY = [                                            // [음, 박자]
+  ["D4", .75], ["D4", .25], ["E4", 1], ["D4", 1], ["G4", 1], ["Fs4", 2],
+  ["D4", .75], ["D4", .25], ["E4", 1], ["D4", 1], ["A4", 1], ["G4", 2],
+  ["D4", .75], ["D4", .25], ["D5", 1], ["B4", 1], ["G4", 1], ["Fs4", 1], ["E4", 2.5],
+  ["C5", .75], ["C5", .25], ["B4", 1], ["G4", 1], ["A4", 1], ["G4", 3]
+];
+const BASS = [[1, "G2"], [4, "D3"], [7, "D3"], [10, "G2"], [13, "G2"], [16, "C3"], [19.5, "G2"], [22.5, "D3"], [25.5, "G2"]]; // [시작 박자, 음]
+let audioCtx = null, musicOut = null, musicTimer = null, audioEl = null;
+function unlockAudio() {                                    // 촛불을 누를 때 소리 권한을 받아둠
+  if (CONFIG.music) {
+    if (!audioEl) { audioEl = new Audio(CONFIG.music); audioEl.preload = "auto"; audioEl.loop = true; }
+    return;
+  }
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch {}
+}
+function musicBoxNote(t, freq, dur, vol) {
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + .008);
+  g.gain.exponentialRampToValueAtTime(.0008, t + Math.max(.9, dur * 1.6));
+  g.connect(musicOut);
+  [[1, 1, "sine"], [2, .35, "sine"], [3, .12, "triangle"]].forEach(([mul, amp, type]) => {
+    const o = audioCtx.createOscillator(), og = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq * mul; og.gain.value = amp;
+    o.connect(og).connect(g);
+    o.start(t); o.stop(t + Math.max(1, dur * 1.7));
+  });
+}
+function playSong() {
+  stopSong();
+  if (CONFIG.music) {
+    if (!audioEl) unlockAudio();
+    audioEl.currentTime = 0;
+    audioEl.play().then(() => setMusicBtn(true)).catch(() => setMusicBtn(false));
+    return;
+  }
+  if (!audioCtx) return;
+  musicOut = audioCtx.createGain();
+  musicOut.gain.value = .55;
+  musicOut.connect(audioCtx.destination);
+  setMusicBtn(true);
+  playOnce(audioCtx.currentTime + .15);
+}
+// 한 곡 연주하고, 끝나면 1.2초 쉬었다가 다시 (끌 때까지 반복)
+function playOnce(t0) {
+  if (!musicOut) return;
+  let beat = 0;
+  MELODY.forEach(([n, len]) => { musicBoxNote(t0 + beat * BEAT, N[n], len * BEAT, .32); beat += len; });
+  BASS.forEach(([b, n]) => musicBoxNote(t0 + b * BEAT, N[n], 2 * BEAT, .13));
+  const next = t0 + beat * BEAT + 1.2;
+  musicTimer = setTimeout(() => playOnce(next), Math.max(0, (next - audioCtx.currentTime - .3) * 1000));
+}
+function stopSong() {
+  clearTimeout(musicTimer);
+  if (audioEl) audioEl.pause();
+  if (musicOut && audioCtx) {
+    const g = musicOut;
+    g.gain.setTargetAtTime(0, audioCtx.currentTime, .05);   // 툭 끊기지 않게 살짝 줄이며 끔
+    setTimeout(() => g.disconnect(), 300);
+    musicOut = null;
+  }
+  setMusicBtn(false);
+}
+function setMusicBtn(on) {
+  $("music-btn").setAttribute("aria-pressed", String(on));
+  $("music-btn").setAttribute("aria-label", on ? "생일 축하 노래 끄기" : "생일 축하 노래 다시 듣기");
+}
+$("music-btn").addEventListener("click", () => {
+  if ($("music-btn").getAttribute("aria-pressed") === "true") stopSong();
+  else { unlockAudio(); playSong(); }
+});
+
+let shooting = false;
+function blowOut(btn) {
+  unlockAudio();
+  if (btn.classList.contains("out") || shooting) return;
+  const others = [...$("candles").querySelectorAll(".candle:not(.out)")].filter(b => b !== btn).length;
+  if (others === 0 && !reduceMotion) return startShootout(btn);   // 마지막 촛불은 '빵빵'으로 끔
+  btn.classList.add("out");
+  btn.setAttribute("aria-label", "꺼진 촛불");
+  const left = $("candles").querySelectorAll(".candle:not(.out)").length;
+  if (left > 0) {
+    $("hint").textContent = left === 1 ? "하나 남았어!" : `${left}개 남았어!`;
+    $("status").textContent = `촛불 ${left}개 남았어`;
+    $("candles").querySelector(".candle:not(.out)").focus();
+  } else {
+    celebrate();
+  }
+}
+function celebrate() {
+  $("hint").textContent = "";
+  $("status").textContent = `생일 축하해, ${CONFIG.calling}`;
+  document.body.classList.add("done");
+  if (!reduceMotion) fireworks();
+  // 노래: 두 번째 '빵' 소리(0.2초)가 끝나고 0.5초 뒤
+  setTimeout(() => { if (!songStarted) { songStarted = true; playSong(); } }, 700);
+}
+
+// 총 쏘는 사진은 페이지를 열 때부터 미리 받아둠
+const shooterImg = $("shooter").querySelector("img");
+const shooterReady = (shooterImg.decode ? shooterImg.decode() : Promise.resolve()).then(() => true, () => false);
+
+// 사진이 준비됐을 때만 총 쏘기. 1.2초 안에 준비가 안 되면 소리 없이 촛불만 끄고 넘어감
+function startShootout(lastBtn) {
+  shooting = true;
+  $("hint").textContent = "";
+  const timeout = new Promise(res => setTimeout(() => res(false), 1200));
+  Promise.race([shooterReady, timeout]).then(ok => {
+    if (ok && shooterImg.complete && shooterImg.naturalWidth > 0) return shootout(lastBtn);
+    lastBtn.classList.add("out");
+    lastBtn.setAttribute("aria-label", "꺼진 촛불");
+    shooting = false;
+    celebrate();
+  });
+}
+
+// 사진이 올라와서 왼손, 오른손 두 발 '빵빵' (쏠 때마다 위로 통)
+function shootout(lastBtn) {
+  shooting = true;
+  $("hint").textContent = "";
+  const sh = $("shooter");
+  const [m1, m2] = sh.querySelectorAll(".muzzle");
+  const [w1, w2] = sh.querySelectorAll(".bang-word");
+  const REST = "translate(-50%, 0)";
+  sh.hidden = false;
+  sh.animate([
+    { transform: "translate(-50%, 105%)" },
+    { transform: "translate(-50%, -5%)", offset: .7 },
+    { transform: REST }
+  ], { duration: 560, easing: "cubic-bezier(.2,.9,.3,1)", fill: "forwards" });
+
+  const shot = (at, muzzle, word, tilt, after) => setTimeout(() => {
+    sh.animate([                                             // 반동: 위로 통
+      { transform: REST },
+      { transform: `translate(-50%, -26px) rotate(${tilt}deg)`, offset: .35, easing: "ease-out" },
+      { transform: `translate(-50%, 4px) rotate(0deg)`, offset: .75, easing: "ease-in" },
+      { transform: REST }
+    ], { duration: 380 });
+    muzzle.animate([
+      { transform: "translate(-50%, -50%) scale(.2)", opacity: 1 },
+      { transform: "translate(-50%, -50%) scale(1.2)", opacity: 0 }
+    ], { duration: 320, easing: "cubic-bezier(.2,.8,.3,1)" });
+    word.animate([
+      { transform: "translate(-50%, -50%) scale(.3) rotate(-12deg)", opacity: 0 },
+      { transform: "translate(-50%, -50%) scale(1.15) rotate(-6deg)", opacity: 1, offset: .25 },
+      { transform: "translate(-50%, -50%) scale(1) rotate(-6deg)", opacity: 1, offset: .7 },
+      { transform: "translate(-50%, -80%) scale(.9) rotate(-6deg)", opacity: 0 }
+    ], { duration: 900, easing: "ease-out" });
+    if (!sh.hidden && shooterImg.naturalWidth > 0) popSound();   // 사진이 떠 있을 때만 총소리
+    after && after();
+  }, at);
+
+  shot(820, m1, w1, -2, () => {                              // 첫 발: 마지막 촛불이 꺼짐
+    lastBtn.classList.add("out");
+    lastBtn.setAttribute("aria-label", "꺼진 촛불");
+  });
+  shot(1380, m2, w2, 2, () => celebrate());                  // 둘째 발: 폭죽
+  setTimeout(() => {
+    sh.animate([{ transform: REST }, { transform: "translate(-50%, 105%)" }],
+      { duration: 480, easing: "cubic-bezier(.5,0,.8,.4)", fill: "forwards" });
+    setTimeout(() => { sh.hidden = true; shooting = false; }, 500);
+  }, 3100);
+}
+
+// '빵' 소리: 짧은 잡음 + 낮은 쿵
+function popSound() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const t = audioCtx.currentTime;
+    const len = Math.floor(audioCtx.sampleRate * .18);
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const noise = audioCtx.createBufferSource(); noise.buffer = buf;
+    const bp = audioCtx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1400; bp.Q.value = .7;
+    const g = audioCtx.createGain(); g.gain.value = .5;
+    noise.connect(bp).connect(g).connect(audioCtx.destination);
+    noise.start(t);
+    const o = audioCtx.createOscillator(), og = audioCtx.createGain();
+    o.frequency.setValueAtTime(160, t); o.frequency.exponentialRampToValueAtTime(50, t + .15);
+    og.gain.setValueAtTime(.45, t); og.gain.exponentialRampToValueAtTime(.001, t + .18);
+    o.connect(og).connect(audioCtx.destination);
+    o.start(t); o.stop(t + .2);
+  } catch {}
+}
+// 케이크 둘레 여기저기서 차례로 '빵' 터지는 폭죽
+const FIREWORK_COLORS = [
+  ["#E2384F", "#FFD36E"], ["#F4A7B2", "#FFFFFF"], ["#FFD36E", "#FF8A5B"],
+  ["#9DC3EA", "#FFFFFF"], ["#C9B4EE", "#F4A7B2"], ["#FF8A5B", "#FFE9A8"], ["#E2384F", "#FFFFFF"]
+];
+function fireworks() {
+  const fx = $("fx");
+  fx.innerHTML = "";
+  const r = $("cake").getBoundingClientRect();
+  const vw = window.innerWidth;
+  const scale = Math.min(1.15, Math.max(.75, r.width / 380));
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  // [케이크 기준 가로 위치, 세로 위치, 시작 시각(ms)]
+  const spots = [[-.02, .12, 0], [1.02, .08, 170], [.5, -.1, 330], [-.04, .55, 480], [1.04, .5, 610], [.18, -.04, 760], [.84, -.05, 900]];
+  spots.forEach(([fxr, fyr, delay], k) => {
+    const x = Math.min(vw - 24, Math.max(24, r.left + r.width * fxr));
+    const y = Math.max(24, r.top + r.height * fyr);
+    const [c1, c2] = FIREWORK_COLORS[k % FIREWORK_COLORS.length];
+    const flash = document.createElement("div");
+    flash.className = "flash";
+    flash.style.left = `${x}px`; flash.style.top = `${y}px`;
+    fx.appendChild(flash);
+    flash.animate([{ transform: "scale(.2)", opacity: 1 }, { transform: "scale(1.5)", opacity: 0 }],
+      { duration: 380, delay, easing: "cubic-bezier(.2,.8,.3,1)", fill: "both" });
+    const n = 34;
+    for (let i = 0; i < n; i++) {
+      const sp = document.createElement("i");
+      sp.className = "spark";
+      sp.style.left = `${x}px`; sp.style.top = `${y}px`;
+      sp.style.setProperty("--c", i % 3 ? c1 : c2);
+      const a = (Math.PI * 2 * i) / n + rnd(-.08, .08);
+      const dist = rnd(55, 105) * scale;
+      const dx = Math.cos(a) * dist, dy = Math.sin(a) * dist;
+      const drop = rnd(28, 46) * scale;                      // 터진 뒤 천천히 떨어짐
+      const deg = a * 180 / Math.PI + 90;                    // 날아가는 방향으로 꼬리
+      fx.appendChild(sp);
+      sp.animate([
+        { transform: `translate(0px, 0px) rotate(${deg}deg) scaleY(.3)`, opacity: 1 },
+        { transform: `translate(${dx * .78}px, ${dy * .78}px) rotate(${deg}deg) scaleY(1)`, opacity: 1, offset: .32 },
+        { transform: `translate(${dx}px, ${dy + drop * .45}px) rotate(${deg}deg) scaleY(.55)`, opacity: .85, offset: .7 },
+        { transform: `translate(${dx * 1.04}px, ${dy + drop}px) rotate(${deg}deg) scaleY(.25)`, opacity: 0 }
+      ], { duration: rnd(1050, 1450), delay: delay + rnd(0, 40), easing: "cubic-bezier(.12,.8,.3,1)", fill: "both" });
+    }
+  });
+  setTimeout(() => { fx.innerHTML = ""; }, 3000);
+}
+/* 페이지 넘기기 */
+const pages = [$("top"), $("letter"), document.querySelector(".album"), document.querySelector(".gacha"), document.querySelector(".end")];
+const PAGE_NAMES = ["케이크", "편지", "우리 10년", "선물 뽑기", "마지막"];
+let page = 0;
+pages.forEach((p, k) => { p.classList.add("page"); p.tabIndex = -1; p.hidden = k !== 0; });
+$("dots").innerHTML = PAGE_NAMES.map((n, k) =>
+  `<li><button type="button" data-page="${k}" aria-label="${n} 페이지"></button></li>`).join("");
+
+function updatePager() {
+  $("prev").disabled = page === 0;
+  $("next").disabled = page === pages.length - 1;
+  $("dots").querySelectorAll("button").forEach((b, k) =>
+    k === page ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+}
+let songStarted = false;
+/* 편지 페이지 작은 사진 순환: 하나 보였다 사라지고 다음 사진 */
+const lpFrames = [...document.querySelectorAll(".letter-photos .lp")];
+const lpList = (CONFIG.letterPhotos || []).filter(Boolean);
+lpList.forEach(src => { const im = new Image(); im.src = src; });   // 미리 받아두기
+let lpIndex = 0, lpTimer = null, lpFront = 0;
+// 무작위 순서: 한 바퀴 안에선 겹치지 않고, 다 돌면 다시 섞음 (바퀴 사이에도 같은 사진 연달아 X)
+let lpQueue = [], lpLast = null;
+function nextLetterPhotoSrc() {
+  if (!lpQueue.length) {
+    lpQueue = lpList.slice().sort(() => Math.random() - .5);
+    if (lpQueue.length > 1 && lpQueue[0] === lpLast) lpQueue.push(lpQueue.shift());
+  }
+  return (lpLast = lpQueue.shift());
+}
+function showNextLetterPhoto() {
+  if (!lpList.length) return;
+  const cur = lpFrames[lpFront], nxt = lpFrames[1 - lpFront];
+  cur.classList.remove("show");                                       // 지금 사진 사라짐
+  nxt.querySelector("img").src = nextLetterPhotoSrc();
+  placeLetterPhoto(nxt, cur);
+  nxt.style.setProperty("--r", `${(lpIndex % 2 ? 1 : -1) * (3 + (lpIndex * 7) % 5)}deg`);
+  lpIndex++;
+  lpFront = 1 - lpFront;
+  lpTimer = setTimeout(() => {
+    nxt.classList.add("show");                                        // 다음 사진 나타남
+    lpTimer = setTimeout(showNextLetterPhoto, 2600);                  // 2.6초 보여주기
+  }, 450);
+}
+// 지금 화면에 보이는 영역 중 글자 줄과 겹치지 않는 곳을 무작위로 고름
+function placeLetterPhoto(el, prev) {
+  const sec = $("letter"), wrap = sec.querySelector(".wrap");
+  const wr = wrap.getBoundingClientRect(), sr = sec.getBoundingClientRect();
+  const toWrap = (r, pad) => ({ l: r.left - wr.left - pad, t: r.top - wr.top - pad, r: r.right - wr.left + pad, b: r.bottom - wr.top + pad });
+  const blocks = [];
+  const range = document.createRange();
+  [$("letter-title"), ...$("letter-body").querySelectorAll("p"), $("sign")].forEach(node => {
+    range.selectNodeContents(node);
+    [...range.getClientRects()].forEach(r => blocks.push(toWrap(r, 10)));   // 글자 줄 + 여유 10px
+  });
+  if (prev.style.left) blocks.push(toWrap(prev.getBoundingClientRect(), 20));  // 바로 전 자리는 피함
+  const pager = $("pager").getBoundingClientRect();
+  const area = { l: sr.left - wr.left + 8, t: sr.top - wr.top + 12, r: sr.right - wr.left - 8, b: Math.min(sr.bottom, pager.top - 8) - wr.top };
+  el.style.width = "";
+  for (const shrink of [1, .8]) {
+    const w = el.offsetWidth * shrink, h = w / .8;
+    for (let tries = 0; tries < 220; tries++) {
+      const x = area.l + Math.random() * Math.max(0, area.r - area.l - w);
+      const y = area.t + Math.random() * Math.max(0, area.b - area.t - h);
+      const box = { l: x - 6, t: y - 6, r: x + w + 6, b: y + h + 6 };          // 기울어진 만큼 여유
+      if (blocks.every(k => box.r < k.l || box.l > k.r || box.b < k.t || box.t > k.b)) {
+        el.style.width = shrink < 1 ? `${w}px` : "";
+        el.style.left = `${x}px`; el.style.top = `${y}px`;
+        return;
+      }
+    }
+  }
+  // 빈 곳이 없으면 서명 옆 (카드 오른쪽 아래)
+  const card = toWrap(wrap.querySelector(".letter-card").getBoundingClientRect(), 0);
+  el.style.left = `${card.r - el.offsetWidth - 12}px`;
+  el.style.top = `${card.b - el.offsetWidth / .8 + 14}px`;
+}
+function startLetterPhotos() { if (!lpTimer && lpList.length) showNextLetterPhoto(); }
+function stopLetterPhotos() { clearTimeout(lpTimer); lpTimer = null; }
+
+function go(i) {
+  i = Math.max(0, Math.min(pages.length - 1, i));
+  if (i === page) return;
+  const dir = i > page ? 1 : -1;
+  pages[page].hidden = true;
+  page = i;
+  const p = pages[page];
+  p.hidden = false;
+  p.classList.remove("page-enter");
+  p.style.setProperty("--from", `${dir * 30}px`);
+  void p.offsetWidth;                          // 애니메이션 다시 시작
+  if (!reduceMotion) p.classList.add("page-enter");
+  p.scrollTop = 0;
+  updatePager();
+  p.focus({ preventScroll: true });
+  page === 1 ? startLetterPhotos() : stopLetterPhotos();
+}
+updatePager();
+$("prev").addEventListener("click", () => go(page - 1));
+$("next").addEventListener("click", () => go(page + 1));
+$("dots").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-page]");
+  if (b) go(Number(b.dataset.page));
+});
+
+// 키보드 ←/→, 휴대폰 좌우 스와이프 (쪽지가 열려 있을 땐 막음)
+const canSwipe = () => document.body.classList.contains("done") && $("reveal").hidden;
+document.addEventListener("keydown", (e) => {
+  if (!canSwipe() || e.target.closest("input, textarea")) return;
+  if (e.key === "ArrowRight") go(page + 1);
+  if (e.key === "ArrowLeft") go(page - 1);
+});
+let touch = null;
+document.addEventListener("touchstart", (e) => {
+  touch = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+}, { passive: true });
+document.addEventListener("touchend", (e) => {
+  if (!touch || !canSwipe()) return;
+  const dx = e.changedTouches[0].clientX - touch.x;
+  const dy = e.changedTouches[0].clientY - touch.y;
+  touch = null;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(page + (dx < 0 ? 1 : -1));
+}, { passive: true });
+
+
+buildCandles();
+</script>
+</body>
+</html>
