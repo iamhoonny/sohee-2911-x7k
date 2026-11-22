@@ -1123,18 +1123,19 @@ const shooterReady = (shooterImg.decode ? shooterImg.decode() : Promise.resolve(
 function startShootout(lastBtn) {
   shooting = true;
   $("hint").textContent = "";
-  const timeout = new Promise(res => setTimeout(() => res(false), 1200));
-  Promise.race([shooterReady, timeout]).then(ok => {
-    if (ok && shooterImg.complete && shooterImg.naturalWidth > 0) return shootout(lastBtn);
-    lastBtn.classList.add("out");
-    lastBtn.setAttribute("aria-label", "꺼진 촛불");
+  lastBtn.classList.add("out");                              // 마지막 촛불은 누르는 순간 꺼지고
+  lastBtn.setAttribute("aria-label", "꺼진 촛불");
+  const wait = new Promise(res => setTimeout(res, 500));     // 연기 피어오르는 걸 잠깐 보여준 뒤
+  const timeout = new Promise(res => setTimeout(() => res(false), 1700));
+  Promise.all([wait, Promise.race([shooterReady, timeout])]).then(([, ok]) => {
+    if (ok && shooterImg.complete && shooterImg.naturalWidth > 0) return shootout();   // 사진 등장, 빵빵
     shooting = false;
     celebrate();
   });
 }
 
 // 사진이 올라와서 왼손, 오른손 두 발 '빵빵' (쏠 때마다 위로 통)
-function shootout(lastBtn) {
+function shootout() {
   shooting = true;
   $("hint").textContent = "";
   const sh = $("shooter");
@@ -1169,10 +1170,7 @@ function shootout(lastBtn) {
     after && after();
   }, at);
 
-  shot(820, m1, w1, -2, () => {                              // 첫 발: 마지막 촛불이 꺼짐
-    lastBtn.classList.add("out");
-    lastBtn.setAttribute("aria-label", "꺼진 촛불");
-  });
+  shot(820, m1, w1, -2);                                      // 첫 발
   shot(1380, m2, w2, 2, () => celebrate());                  // 둘째 발: 폭죽
   setTimeout(() => {
     sh.animate([{ transform: REST }, { transform: "translate(-50%, 105%)" }],
